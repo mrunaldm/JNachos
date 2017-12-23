@@ -68,9 +68,9 @@ public abstract class JNachos {
 
 	public static LinkedList<TranslationEntry> pageList = new LinkedList<>();
 
-	private static LinkedHashMap<Integer,NachosProcess> processWaitingTable = new LinkedHashMap<Integer,NachosProcess>();
+	public static LinkedHashMap<Integer,NachosProcess> processWaitingTable = new LinkedHashMap<Integer,NachosProcess>();
 
-	private static LinkedHashMap<Integer,NachosProcess> processTable = new LinkedHashMap<Integer, NachosProcess>();
+	public static LinkedHashMap<Integer,NachosProcess> processTable = new LinkedHashMap<Integer, NachosProcess>();
 
 	/**
 	 * The global scheduler in our system. This class decides which process to
@@ -289,13 +289,8 @@ public abstract class JNachos {
 		}
 	}
 
-	public static LinkedHashMap<Integer, NachosProcess> getProcessWaitingTable() {
-		return processWaitingTable;
-	}
 
-	public static void setProcessWaitingTable(LinkedHashMap<Integer, NachosProcess> processWaitingTable) {
-		JNachos.processWaitingTable = processWaitingTable;
-	}
+
 
 	/**
 	 * Starts a user process written in C. Run a user program. Open the

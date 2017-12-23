@@ -87,12 +87,12 @@ public class SystemCallHandler {
 			NachosProcess finishingProcess = JNachos.getCurrentProcess();
 			System.out.println("Exit system call SysCall("+pWhichSysCall+") called by process PID :"+finishingProcess.getProcessId());
 			int arg = Machine.readRegister(4);
-			if(JNachos.getProcessWaitingTable().containsKey(finishingProcess.getProcessId())){
-				NachosProcess waitingProcess = JNachos.getProcessWaitingTable().get(finishingProcess.getProcessId());
+			if(JNachos.processWaitingTable.containsKey(finishingProcess.getProcessId())){
+				NachosProcess waitingProcess = JNachos.processWaitingTable.get(finishingProcess.getProcessId());
 				System.out.println("Process PID: " + waitingProcess.getProcessId()+" was waiting for PID "+ finishingProcess.getProcessId());
 				System.out.println("Writing exit argument " + arg + " to register 2. Return of Join is : " +arg);
 				Machine.writeRegister(2,arg);
-				JNachos.getProcessWaitingTable().remove(finishingProcess.getProcessId());
+				JNachos.processWaitingTable.remove(finishingProcess.getProcessId());
 				System.out.println("Process added to ready queue PID : " + waitingProcess.getProcessId());
 				Scheduler.readyToRun(waitingProcess);
 			}
@@ -116,20 +116,22 @@ public class SystemCallHandler {
 				System.out.println("Child process PID is : " + childProcess.getProcessId());
 				Interrupt.setLevel(oldLevel);
 				break;
+
 			case SC_Join:
 				System.out.println("(SysCall : "+pWhichSysCall+") Join system call from PID " + JNachos.getCurrentProcess().getProcessId());
 				oldLevel = Interrupt.setLevel(false);
 				int requestedPid = Machine.readRegister(4);
 				System.out.println("Join system call made to wait for PID : " + requestedPid );
 				NachosProcess invokingProcess = JNachos.getCurrentProcess();
-				if( requestedPid == invokingProcess.getProcessId() || !JNachos.getProcessTable().containsKey(requestedPid)){
+				if( requestedPid == invokingProcess.getProcessId() || !JNachos.processTable.containsKey(requestedPid)){
 					System.out.println("Returning from  join system call! Call made to self or invalid process from PID "+invokingProcess.getProcessId());
 					return;
 				}
-				JNachos.getProcessWaitingTable().put(requestedPid,invokingProcess);
+				JNachos.processWaitingTable.put(requestedPid,invokingProcess);
 				invokingProcess.sleep();
 				Interrupt.setLevel(oldLevel);
 				break;
+
 			case SC_Exec:
 				String fileName = new String();
 				oldLevel = Interrupt.setLevel(false);
@@ -149,6 +151,7 @@ public class SystemCallHandler {
 				}
 				Interrupt.setLevel(oldLevel);
 				break;
+
 		default:
 			Interrupt.halt();
 			break;

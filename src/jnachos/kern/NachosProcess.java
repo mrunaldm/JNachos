@@ -104,7 +104,7 @@ public class NachosProcess implements Runnable {
 		mSpace = null;
 		mStarted = false;
 		mUserRegisters = new int[Machine.NumTotalRegs];
-		JNachos.getProcessTable().put(processId,this);
+		JNachos.processTable.put(processId,this);
 	}
 
 	/**
@@ -434,7 +434,7 @@ public class NachosProcess implements Runnable {
 	 * Sets the address space for this process.
 	 * 
 	 * @param
-	 *            the address space for this process
+	 *            address space for this process
 	 *
 	 **/
 	public void setSpace(AddrSpace pAddr) {
