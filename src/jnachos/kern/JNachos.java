@@ -11,6 +11,7 @@ import jnachos.machine.*;
 import jnachos.filesystem.*;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -58,10 +59,14 @@ public abstract class JNachos {
 	 */
 	private static NachosProcess mCurrentProcess;
 
+	public static final String FILE_NAME = "swapSpace";
+
 	/**
 	 * Points to a process that should be destroyed.
 	 */
 	private static NachosProcess mProcessToBeDestroyed;
+
+	public static LinkedList<TranslationEntry> pageList = new LinkedList<>();
 
 	private static LinkedHashMap<Integer,NachosProcess> processWaitingTable = new LinkedHashMap<Integer,NachosProcess>();
 
@@ -93,8 +98,14 @@ public abstract class JNachos {
 
 	/**
 	 * A Synchronized Disk. Used for controlled access to the disk.
+	 *
 	 */
+
+	public static OpenFile swapSpace;
+
 	public static SynchDisk mSynchDisk;
+
+	public static int swapSpaceIndex;
 
 	/*
 	 * 
@@ -209,6 +220,12 @@ public abstract class JNachos {
 
 		mFileSystem = new JavaFileSystem(format);
 
+		mSynchDisk = new SynchDisk("DISK");
+
+		mFileSystem = new JavaFileSystem(format);
+		if(mFileSystem.create(FILE_NAME,0)) {
+			swapSpace = mFileSystem.open(FILE_NAME);
+		}
 		/*
 		 * mPostOffice = new PostOffice(netname, rely, 10);
 		 */
@@ -233,14 +250,6 @@ public abstract class JNachos {
 	 **/
 	public static NachosProcess getCurrentProcess() {
 		return mCurrentProcess;
-	}
-
-	public static LinkedHashMap<Integer, NachosProcess> getProcessTable() {
-		return processTable;
-	}
-
-	public static void setProcessTable(LinkedHashMap<Integer, NachosProcess> processTable) {
-		JNachos.processTable = processTable;
 	}
 
 	/**
@@ -274,8 +283,8 @@ public abstract class JNachos {
 		assert ((pProcess == mCurrentProcess) || (pProcess == null));
 		mProcessToBeDestroyed = pProcess;
 		if (pProcess!=null){
-			if(JNachos.getProcessTable().containsKey(pProcess.getProcessId())) {
-				JNachos.getProcessTable().remove(pProcess.getProcessId());
+			if(JNachos.processTable.containsKey(pProcess.getProcessId())) {
+				JNachos.processTable.remove(pProcess.getProcessId());
 			}
 		}
 	}

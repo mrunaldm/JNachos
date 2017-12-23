@@ -20,6 +20,8 @@ public class TranslationEntry {
 	/** The page number in real memory (relative to the start of main memory) */
 	public int physicalPage;
 
+	public int pageInSwapSpace;
+
 	/**
 	 * If this bit is set, the translation is ignored. (In other words, the
 	 * entry hasn't been initialized.)

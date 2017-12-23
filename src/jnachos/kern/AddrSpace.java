@@ -19,7 +19,7 @@ public class AddrSpace {
 	/**
 	 * The page table for the process.
 	 */
-	private TranslationEntry[] mPageTable;
+	public TranslationEntry[] mPageTable;
 
 	/**
 	 * The number of pages in this address space.

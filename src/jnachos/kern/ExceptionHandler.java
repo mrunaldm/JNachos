@@ -22,7 +22,7 @@ public abstract class ExceptionHandler {
 	 *
 	 * @param pException
 	 *            The type of exception that was raised.
-	 * @see ExceptionType.java
+	 *
 	 */
 	public static void handleException(ExceptionType pException) {
 		switch (pException) {
@@ -35,10 +35,51 @@ public abstract class ExceptionHandler {
 			// Invoke the System call handler
 			SystemCallHandler.handleSystemCall(type);
 			break;
+			case PageFaultException:
+				int pageNumber = AddrSpace.mFreeMap.find();
+				handlePageFault(pageNumber,JNachos.getCurrentProcess());
+				break;
+			// All other exceptions shut down for now
+			default:
+				System.exit(0);
+		}
+	}
 
-		// All other exceptions shut down for now
-		default:
-			System.exit(0);
+	private static void handlePageFault(int pageNumber,NachosProcess currentProcess){
+
+		TranslationEntry[] currentPageTable = currentProcess.getSpace().mPageTable;
+		if(pageNumber < 0){
+
+			TranslationEntry pageToBeEvicted = JNachos.pageList.removeFirst();
+			if (pageToBeEvicted.dirty){
+				pageToBeEvicted.dirty = false;
+				byte[] evictedAddress = new byte[Machine.PageSize];
+				System.arraycopy(Machine.mMainMemory,pageToBeEvicted.physicalPage*Machine.PageSize,evictedAddress,0,Machine.PageSize);
+				JNachos.swapSpace.writeAt(evictedAddress,Machine.PageSize,pageToBeEvicted.pageInSwapSpace*Machine.PageSize);
+			}
+			pageNumber = pageToBeEvicted.physicalPage;
+			pageToBeEvicted.physicalPage = -1;
+			pageToBeEvicted.use = false;
+			pageToBeEvicted.valid = false;
+		}
+		Statistics.numPageFaults++;
+		int faultyVirtualAddress = Machine.readRegister(Machine.BadVAddrReg);
+		int faultyPageNumber = faultyVirtualAddress/Machine.PageSize;
+		byte[] bytes = new byte[Machine.PageSize];
+		System.out.println("Total page faults : " + Statistics.numPageFaults);
+		System.out.println("Faulty page : " + faultyPageNumber);
+		System.out.println("Faulty address : " + faultyVirtualAddress);
+		JNachos.swapSpace.readAt(bytes,Machine.PageSize,currentPageTable[faultyPageNumber].pageInSwapSpace*Machine.PageSize);
+		System.arraycopy(bytes,0,Machine.mMainMemory,pageNumber*Machine.PageSize,Machine.PageSize);
+		currentPageTable[faultyPageNumber].valid = true;
+		currentPageTable[faultyPageNumber].use = true;
+		currentPageTable[faultyPageNumber].physicalPage = pageNumber;
+		if(JNachos.pageList.isEmpty()){
+			JNachos.pageList.addFirst(currentPageTable[faultyPageNumber]);
+		}
+		else {
+			JNachos.pageList.addLast(currentPageTable[faultyPageNumber]);
 		}
 	}
 }
+
